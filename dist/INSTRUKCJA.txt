@@ -1,0 +1,65 @@
+StadoVet 0.1 — Windows 10/11, 64-bit
+===================================
+
+INSTALACJA
+Uruchom StadoVet-Setup-0.1.0-win64.exe i przejdź przez instalator.
+Python i biblioteki są dołączone. Nie instaluj ich osobno.
+Nie potrzeba uprawnień administratora ani internetu podczas instalacji.
+
+URUCHOMIENIE
+Kliknij skrót „StadoVet” na pulpicie lub w menu Start.
+Program uruchamia lokalny serwer i otwiera domyślną przeglądarkę.
+Przy ponownym kliknięciu otworzy istniejący program.
+Domyślny adres to http://127.0.0.1:8765; jeśli port jest zajęty,
+program wybierze inny wolny port i otworzy właściwy adres.
+
+ZAMYKANIE
+Zamknięcie karty przeglądarki nie zatrzymuje serwera.
+Aby go zatrzymać, wybierz Start → StadoVet → „Zatrzymaj StadoVet”.
+Program nie uruchamia się automatycznie po zalogowaniu do Windows.
+
+TWOJE DANE
+Baza: %LOCALAPPDATA%\StadoVet\vet.db
+Program: %LOCALAPPDATA%\Programs\StadoVet
+Aktualizacja i odinstalowanie zachowują folder z bazą i logami.
+Nie usuwaj go bez wykonania kopii. Aktualizacja najpierw zatrzyma
+działający serwer. Przed aktualizacją zapisz otwarte formularze.
+
+Najprostsza kopia: zatrzymaj StadoVet, skopiuj cały folder
+%LOCALAPPDATA%\StadoVet do prywatnej lokalizacji, potem uruchom program.
+Nie kopiuj samego pliku vet.db podczas działania serwera.
+
+PIERWSZE KROKI
+Dodaj gospodarstwo → dodaj zwierzęta → zaplanuj wizytę.
+Dane pokazowe są opcjonalne i wyraźnie oznaczone [DEMO].
+Nie zapisuj rzeczywistych danych w gospodarstwach [DEMO].
+
+AI I INFORMACJE Z INTERNETU
+Kartoteki, wizyty i leczenie działają bez internetu.
+Bez klucza AI dostępny jest pomocnik lokalny, bez modelu językowego.
+Pełny model wymaga własnego klucza w zmiennej VET_AI_API_KEY;
+nie udostępniaj klucza w czacie ani w plikach przesyłanych innym.
+Po zmianie zmiennej zatrzymaj i ponownie uruchom StadoVet.
+Korzystanie z API może być płatne według cennika dostawcy.
+
+Publiczne źródła (GIW, Agrofoto, Farmer) wymagają internetu.
+Program respektuje robots.txt i nie omija blokad portali.
+Brak dostępu zobaczysz w „Źródła i ustawienia”. Materiały to sygnały
+do oceny, nie potwierdzone ogniska chorób. Brak materiałów nie dowodzi
+braku zagrożeń. AI nie rozpoznaje chorób i nie dobiera dawek.
+
+OGRANICZENIA
+Wersja na jedno lokalne stanowisko, bez kont i ról użytkowników.
+Nie udostępniaj serwera publicznie. Nie ma integracji z IRZplus.
+Leczenie i karencje wpisuje lekarz według dokumentacji produktu.
+
+PROBLEMY
+Szczegóły uruchomienia: %LOCALAPPDATA%\StadoVet\startup.log
+Nigdy nie wysyłaj całej bazy ani logów z danymi gospodarstw publicznie.
+
+LICENCJE
+Licencja programu: LICENSE.txt; kod źródłowy znajduje się w app\vetapp.
+Python Software Foundation: runtime\LICENSE.txt.
+Licencje bibliotek: katalogi *.dist-info w runtime\Lib\site-packages.
+Sumy kontrolne składników znajdują się w BUILD-MANIFEST.json.
+Instalator nie posiada płatnego certyfikatu podpisu wydawcy.

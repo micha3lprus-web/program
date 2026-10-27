@@ -1,0 +1,92 @@
+name: Publish StadoVet Windows installer
+
+on:
+  push:
+    tags:
+      - v0.1.0
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stadovet-release-v0.1.0
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: v0.1.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify the tested installer and create the download ZIP
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, zipfile
+          root = Path('dist')
+          installer = root / 'StadoVet-Setup-0.1.0-win64.exe'
+          expected = (root / (installer.name + '.sha256')).read_text().split()[0]
+          assert hashlib.sha256(installer.read_bytes()).hexdigest() == expected, 'Installer checksum mismatch'
+          assert installer.read_bytes()[:2] == b'MZ', 'Not a Windows executable'
+          with zipfile.ZipFile(root / 'StadoVet-Windows-0.1.0.zip', 'w', compression=zipfile.ZIP_STORED) as z:
+              for p in [installer, root / (installer.name + '.sha256'), root / 'INSTRUKCJA.txt']:
+                  z.write(p, p.name)
+          print('Verified SHA-256:', expected)
+          PY
+
+      - name: Publish release with the verified files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "A release already exists for this tag; refusing to replace its files."
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" --verify-tag --draft \
+            --title "StadoVet 0.1.0 — instalator Windows" \
+            --notes-file packaging/windows/RELEASE_NOTES.md \
+            dist/StadoVet-Setup-0.1.0-win64.exe \
+            dist/StadoVet-Setup-0.1.0-win64.exe.sha256 \
+            dist/StadoVet-Windows-0.1.0.zip \
+            dist/INSTRUKCJA.txt
+          gh release edit "$RELEASE_TAG" --draft=false --latest \
+            --title "StadoVet 0.1.0 — instalator Windows" \
+            --notes-file packaging/windows/RELEASE_NOTES.md
+
+      - name: Record the publication result as Git metadata
+        if: always()
+        continue-on-error: true
+        env:
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$JOB_STATUS" = success ]; then
+            gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/release-api.json"
+          fi
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload = {'status': os.environ['JOB_STATUS'], 'tag': os.environ['RELEASE_TAG'],
+                     'run_url': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"}
+          source = Path(os.environ['RUNNER_TEMP']) / 'release-api.json'
+          if source.exists():
+              data = json.loads(source.read_text())
+              payload.update(url=data['html_url'], draft=data['draft'],
+                             assets=[{'name': a['name'], 'url': a['browser_download_url'],
+                                      'size': a['size'], 'digest': a.get('digest')} for a in data['assets']])
+          (Path(os.environ['RUNNER_TEMP']) / 'release-result.json').write_text(json.dumps(payload))
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin refs/notes/stadovet-releases:refs/notes/stadovet-releases || true
+          git notes --ref=stadovet-releases add -f -F "$RUNNER_TEMP/release-result.json" "$GITHUB_SHA"
+          git push origin refs/notes/stadovet-releases
